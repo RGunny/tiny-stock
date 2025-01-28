@@ -1,4 +1,4 @@
-package com.example.tinystock.user
+package me.rgunny.tinystock.user
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
