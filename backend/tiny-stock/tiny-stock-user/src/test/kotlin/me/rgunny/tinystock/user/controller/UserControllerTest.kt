@@ -46,7 +46,6 @@ class UserControllerTest @Autowired constructor(
                 status { isBadRequest() }
             }
             .andDo {
-                // 필요하다면 응답 본문에서 메시지 파싱
                 print()
             }
     }

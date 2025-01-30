@@ -22,7 +22,7 @@ class UserServiceTest @Autowired constructor(
     }
 
     @Test
-    fun `createUser - status INACTIVE by default`() {
+    fun `createUser - 신규유저의 상태는 INACTIVE`() {
         val user = User("rgunny", "rgunny@test.com")
         val createdUser = userService.createUser(user)
 
@@ -32,7 +32,7 @@ class UserServiceTest @Autowired constructor(
     }
 
     @Test
-    fun `createUser - 중복 이메일 예외`() {
+    fun `createUser - 신규유저 생성 시 중복이메일은 IllegalStateException 발생`() {
         val user1 = User("user1", "rgunny@test.com")
         userService.createUser(user1)
 
@@ -44,7 +44,7 @@ class UserServiceTest @Autowired constructor(
     }
 
     @Test
-    fun `changeEmail - 정상 시나리오`() {
+    fun `changeEmail - 이메일 변경 정상 테스트`() {
         val createdUser = userService.createUser(User("oldname", "old@test.com"))
         assertEquals("old@test.com", createdUser.email)
 
