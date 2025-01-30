@@ -1,30 +1,55 @@
 package me.rgunny.tinystock.common.exception
 
-import org.springframework.http.HttpStatus
+import me.rgunny.tinystock.common.exception.domain.BaseException
+import me.rgunny.tinystock.common.exception.domain.ErrorCode
+import me.rgunny.tinystock.common.exception.domain.ErrorResponse
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.context.request.RequestContextHolder
+import org.springframework.web.context.request.ServletRequestAttributes
+import java.time.Instant
 
 @RestControllerAdvice
-class RestControllerAdvice {
+@Order(Ordered.HIGHEST_PRECEDENCE)
+class ExceptionAdvice {
 
-    @ExceptionHandler(IllegalStateException::class)
-    fun handleIllegalState(ex: IllegalStateException): ResponseEntity<Any> {
-        // 400 Bad Request
-        val errorBody = mapOf(
-            "error" to "IllegalState",
-            "message" to ex.message
+    @ExceptionHandler(BaseException::class)
+    fun handleBaseException(e: BaseException): ResponseEntity<ErrorResponse> {
+        val status = e.errorCode.status
+        val request = currentRequest()
+        val path = request?.requestURI ?: ""
+        val traceId = request?.getAttribute("TRACE_ID") as? String
+
+        val body = ErrorResponse(
+            timestamp = Instant.now(),
+            path = path,
+            traceId = traceId,
+            code = e.errorCode.code,
+            message = e.message ?: e.errorCode.defaultMessage
         )
-        return ResponseEntity(errorBody, HttpStatus.BAD_REQUEST)
+        return ResponseEntity.status(status).body(body)
     }
 
     @ExceptionHandler(Exception::class)
-    fun handleGeneralException(ex: Exception): ResponseEntity<Any> {
-        // 500 Internal Server Error
-        val errorBody = mapOf(
-            "error" to "InternalServerError",
-            "message" to ex.message
+    fun handleGeneralException(e: Exception): ResponseEntity<ErrorResponse> {
+        val request = currentRequest()
+        val path = request?.requestURI ?: ""
+        val traceId = request?.getAttribute("TRACE_ID") as? String
+
+        val errorCode = ErrorCode.INTERNAL_ERROR
+        val body = ErrorResponse(
+            timestamp = Instant.now(),
+            path = path,
+            traceId = traceId,
+            code = errorCode.code,
+            message = e.message ?: errorCode.defaultMessage
         )
-        return ResponseEntity(errorBody, HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseEntity.status(errorCode.status).body(body)
     }
+
+    private fun currentRequest() =
+        (RequestContextHolder.getRequestAttributes() as? ServletRequestAttributes)?.request
 }
