@@ -1,0 +1,14 @@
+plugins {
+    id("org.springframework.boot")
+    kotlin("plugin.spring")
+}
+
+dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
+
+    runtimeOnly("com.h2database:h2")
+
+//    testImplementation("uk.org.lidalia:slf4j-test:1.2.0")
+}
