@@ -1,5 +1,6 @@
 package me.rgunny.tinystock.common.fake
 
+import me.rgunny.tinystock.common.aop.fake.FakeService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam

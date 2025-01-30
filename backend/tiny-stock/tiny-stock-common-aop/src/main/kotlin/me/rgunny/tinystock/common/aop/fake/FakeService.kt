@@ -1,4 +1,4 @@
-package me.rgunny.tinystock.common.fake
+package me.rgunny.tinystock.common.aop.fake
 
 import org.springframework.stereotype.Service
 

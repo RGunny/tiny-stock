@@ -1,4 +1,3 @@
-// tiny-stock-common/src/test/kotlin/me/rgunny/tinystock/common/aop/LoggingAspectTest.kt
 package me.rgunny.tinystock.common.aop
 
 import ch.qos.logback.classic.LoggerContext
@@ -13,70 +12,69 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import me.rgunny.tinystock.common.fake.FakeService
+import me.rgunny.tinystock.common.aop.fake.FakeService
+import org.junit.jupiter.api.DisplayName
 
+/**
+ * AOP(LoggingAspect) 테스트 예시
+ * - 정상 시나리오: "[START]" / "[END]" 로그
+ * - 예외 시나리오: "[ERROR]" 로그
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 class LoggingAspectTest(
     @Autowired val fakeService: FakeService
 ) {
 
+    private lateinit var listAppender: ListAppender<ILoggingEvent>
+
     @BeforeEach
-    fun initEach() {
-        // (1) 매번 ListAppender 로그 목록 초기화
+    fun 초기설정() {
+        // logback-test.xml에서 MEMORY appender를 가져와 매번 초기화
         val loggerContext = LoggerFactory.getILoggerFactory() as LoggerContext
         val rootLogger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME)
-
-        val listAppender = rootLogger.getAppender("MEMORY") as? ListAppender<ILoggingEvent>
-        listAppender?.stop()
-        listAppender?.list?.clear()  // 이전 테스트의 로그 비우기
-        listAppender?.start()
+        val memory = rootLogger.getAppender("MEMORY") as? ListAppender<ILoggingEvent>
+        memory?.stop()
+        memory?.list?.clear()
+        memory?.start()
+        listAppender = memory ?: error("MEMORY appender를 찾을 수 없습니다. (logback-test.xml 설정 확인)")
     }
 
     @Test
-    fun `AOP - error call logs ERROR`() {
-        // 1) doSomething("error")
+    @DisplayName("에러 발생 시 [ERROR] 로그를 찍는지 테스트")
+    fun 에러로그_확인() {
         val ex = assertThrows<IllegalStateException> {
             fakeService.doSomething("error")
         }
         assertEquals("test error", ex.message)
 
-        // 2) 로그 확인
-        val loggerContext = LoggerFactory.getILoggerFactory() as LoggerContext
-        val rootLogger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME)
-        val listAppender = rootLogger.getAppender("MEMORY") as ListAppender<ILoggingEvent>
+        val logs = listAppender.list
+        println("=== 로그 목록 (에러 시나리오) ===")
+        logs.forEach { println("  level=${it.level}  msg='${it.formattedMessage}'") }
 
-        val events = listAppender.list
-        println("Captured log events =>")
-        events.forEach { println("  lvl=${it.level} msg=${it.formattedMessage}") }
-
-        // 3) [ERROR] 메시지 검사
-        assertTrue(events.any { it.formattedMessage.contains("[ERROR]") },
-            "로그 중 [ERROR] 문구를 찾지 못했습니다."
+        assertTrue(
+            logs.any { it.formattedMessage.contains("[ERROR]") },
+            "로그에 [ERROR] 문구가 포함되어야 합니다."
         )
     }
 
     @Test
-    fun `AOP - normal call logs START and END`() {
-        // 1) doSomething("hello")
+    @DisplayName("정상 시나리오: [START], [END] 로그가 찍히는지 테스트")
+    fun 정상로그_확인() {
         val result = fakeService.doSomething("hello")
         assertEquals("OK: hello", result)
 
-        // 2) 로그 확인
-        val loggerContext = LoggerFactory.getILoggerFactory() as LoggerContext
-        val rootLogger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME)
-        val listAppender = rootLogger.getAppender("MEMORY") as ListAppender<ILoggingEvent>
+        val logs = listAppender.list
+        println("=== 로그 목록 (정상 시나리오) ===")
+        logs.forEach { println("  level=${it.level}  msg='${it.formattedMessage}'") }
 
-        val events = listAppender.list
-        println("Captured log events =>")
-        events.forEach { println("  lvl=${it.level} msg=${it.formattedMessage}") }
-
-        // 3) [START], [END] 포함 여부
-        assertTrue(events.any { it.formattedMessage.contains("[START]") },
-            "로그 중 [START] 문구를 찾지 못했습니다."
+        assertTrue(
+            logs.any { it.formattedMessage.contains("[START]") },
+            "[START] 로그가 찍히지 않았습니다."
         )
-        assertTrue(events.any { it.formattedMessage.contains("[END]") },
-            "로그 중 [END] 문구를 찾지 못했습니다."
+        assertTrue(
+            logs.any { it.formattedMessage.contains("[END]") },
+            "[END] 로그가 찍히지 않았습니다."
         )
     }
 }

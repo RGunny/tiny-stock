@@ -9,6 +9,4 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
 
     runtimeOnly("com.h2database:h2")
-
-//    testImplementation("uk.org.lidalia:slf4j-test:1.2.0")
 }
