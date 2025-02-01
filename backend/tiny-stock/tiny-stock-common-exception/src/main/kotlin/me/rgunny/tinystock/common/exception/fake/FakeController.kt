@@ -1,6 +1,6 @@
 package me.rgunny.tinystock.common.fake
 
-import me.rgunny.tinystock.common.exception.domain.ResourceNotFoundException
+import me.rgunny.tinystock.common.exception.dto.ResourceNotFoundException
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
