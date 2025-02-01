@@ -4,10 +4,10 @@ import me.rgunny.tinystock.common.exception.domain.BaseException
 import me.rgunny.tinystock.common.exception.domain.ErrorCode
 
 class NotEnoughBalanceException(
-    val userId: Long,
-    val currentBalance: Long,
-    val withdraw: Long
+    userId: Long,
+    currentBalance: Long,
+    withdraw: Long
 ) : BaseException(
-    ErrorCode.INSUFFICIENT_BALANCE,
-    "User($userId): balance=$currentBalance, but tried to withdraw=$withdraw"
+    errorCode = ErrorCode.INSUFFICIENT_BALANCE,
+    message = "User($userId): balance=$currentBalance, but tried to withdraw=$withdraw"
 )
