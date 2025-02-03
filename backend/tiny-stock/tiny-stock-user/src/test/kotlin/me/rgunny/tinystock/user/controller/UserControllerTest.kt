@@ -18,7 +18,7 @@ class UserControllerTest @Autowired constructor(
 
     @Test
     fun `POST - 정상적인 유저 생성`() {
-        val dto = UserCreateDto(username = "rgunny", email = "rgunny@test.com")
+        val dto = UserCreateDto(name = "rgunny", email = "rgunny@test.com")
         val body = objectMapper.writeValueAsString(dto)
 
         mockMvc.post("/api/users") {
@@ -28,14 +28,14 @@ class UserControllerTest @Autowired constructor(
             .andExpect {
                 status { isOk() }
                 jsonPath("$.id") { exists() }
-                jsonPath("$.username") { value("rgunny") }
+                jsonPath("$.name") { value("rgunny") }
                 jsonPath("$.email") { value("rgunny@test.com") }
             }
     }
 
     @Test
     fun `POST - username이 비어있으면 400`() {
-        val dto = UserCreateDto(username = "", email = "rgunny@test.com")
+        val dto = UserCreateDto(name = "", email = "rgunny@test.com")
         val body = objectMapper.writeValueAsString(dto)
 
         mockMvc.post("/api/users") {
@@ -52,7 +52,7 @@ class UserControllerTest @Autowired constructor(
 
     @Test
     fun `POST - 이메일 형식이 잘못되면 400`() {
-        val dto = UserCreateDto(username = "rgunny", email = "invalid_email")
+        val dto = UserCreateDto(name = "rgunny", email = "invalid_email")
         val body = objectMapper.writeValueAsString(dto)
 
         mockMvc.post("/api/users") {

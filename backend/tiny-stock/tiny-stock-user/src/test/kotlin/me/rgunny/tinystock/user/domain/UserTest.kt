@@ -82,26 +82,12 @@ class UserTest {
         val entity = getUserEntity()
 
         // when
-        val user = User.fromEntity(entity)
+        val user = UserEntity.toDomain(entity)
 
         // then
         assertEquals("rgunny", user.name)
         assertEquals("rgunny@test.com", user.email)
         assertEquals(UserStatus.INACTIVE, user.status)
-    }
-
-    @Test
-    fun `toEntity() - 도메인으로부터 UserEntity 생성`() {
-        // given
-        val domain = getInactiveUser()
-
-        // when
-        val entity = User.toEntity(domain)
-
-        // then
-        assertEquals("rgunny", entity.username)
-        assertEquals("rgunny@test.com", entity.email)
-        assertEquals(UserStatus.INACTIVE, entity.status)
     }
 
     @Test
@@ -155,7 +141,7 @@ class UserTest {
 
     private fun getUserEntity() = UserEntity(
         id = 123L,
-        username = "rgunny",
+        name = "rgunny",
         email = "rgunny@test.com",
         status = UserStatus.INACTIVE
     )

@@ -1,10 +1,15 @@
 package me.rgunny.tinystock.user.service
 
-import me.rgunny.tinystock.user.domain.User
+import me.rgunny.tinystock.common.exception.dto.InvalidAmountException
+import me.rgunny.tinystock.common.exception.dto.NotEnoughBalanceException
+import me.rgunny.tinystock.common.exception.dto.ResourceNotFoundException
+import me.rgunny.tinystock.user.domain.UserEntity
 import me.rgunny.tinystock.user.domain.UserStatus
+import me.rgunny.tinystock.user.dto.UserCreateDto
 import me.rgunny.tinystock.user.repository.UserRepository
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,8 +28,8 @@ class UserServiceTest @Autowired constructor(
 
     @Test
     fun `createUser - 신규유저의 상태는 INACTIVE`() {
-        val user = User("rgunny", "rgunny@test.com")
-        val createdUser = userService.createUser(user)
+        val userCreateDto = getUserCreateDto()
+        val createdUser = userService.createUser(userCreateDto)
 
         assertEquals("rgunny", createdUser.name)
         assertEquals("rgunny@test.com", createdUser.email)
@@ -33,10 +38,10 @@ class UserServiceTest @Autowired constructor(
 
     @Test
     fun `createUser - 신규유저 생성 시 중복이메일은 IllegalStateException 발생`() {
-        val user1 = User("user1", "rgunny@test.com")
+        val user1 = getUserCreateDto()
         userService.createUser(user1)
 
-        val user2 = User("user2", "rgunny@test.com")
+        val user2 = getUserCreateDto()
         val duplicateEmailException = assertThrows<IllegalStateException> {
             userService.createUser(user2)
         }
@@ -45,12 +50,13 @@ class UserServiceTest @Autowired constructor(
 
     @Test
     fun `changeEmail - 이메일 변경 정상 테스트`() {
-        val createdUser = userService.createUser(User("oldname", "old@test.com"))
-        assertEquals("old@test.com", createdUser.email)
+        val userCreateDto = getUserCreateDto()
+        val createdUser = userService.createUser(userCreateDto)
+        assertEquals("rgunny@test.com", createdUser.email)
 
-        val updatedUser = userService.changeEmail(createdUser.id!!, "new@test.com")
+        val updatedUser = userService.changeEmail(createdUser.id!!, "newrgunny@test.com")
         assertNotNull(updatedUser)
-        assertEquals("new@test.com", updatedUser!!.email)
+        assertEquals("newrgunny@test.com", updatedUser!!.email)
     }
 
     @Test
@@ -61,7 +67,8 @@ class UserServiceTest @Autowired constructor(
 
     @Test
     fun `activateUser - DB 반영 및 도메인 로직 검증`() {
-        val created = userService.createUser(User(name = "activateUser", email = "rgunny@test.com"))
+        val userCreateDto = getUserCreateDto()
+        val created = userService.createUser(userCreateDto)
 
         assertEquals(UserStatus.INACTIVE, created.status)
         assertNotNull(created.id)
@@ -80,11 +87,62 @@ class UserServiceTest @Autowired constructor(
 
     @Test
     fun `activateUser - 이미 ACTIVE면 예외`() {
-        val user = userService.createUser(User("alreadyActive", "rgunny@test.com", UserStatus.ACTIVE))
+        val userCreateDto = getUserCreateDto()
 
-        val ex = assertThrows<IllegalStateException> {
+        val user = userService.createUser(userCreateDto)
+
+        userService.activateUser(user.id!!)
+
+        val exception = assertThrows<IllegalStateException> {
             userService.activateUser(user.id!!)
         }
-        assertTrue(ex.message!!.contains("already ACTIVE"))
+        assertTrue(exception.message!!.contains("already ACTIVE"))
     }
+
+    @Test
+    fun `createUser - 정상`() {
+        val userCreateDto = getUserCreateDto()
+        val user = userService.createUser(userCreateDto)
+        assertNotNull(user.id)
+        assertEquals(0, user.balance)
+    }
+
+    @Test
+    @DisplayName("입금_정상")
+    fun 입금_정상() {
+        val user = userRepository.save(getUserEntity())
+        val updated = userService.deposit(user.id!!, 500)
+        assertEquals(1500, updated.balance)
+    }
+
+    @Test
+    @DisplayName("입금_유저없음_예외")
+    fun 입금_유저없음_예외() {
+        assertThrows<ResourceNotFoundException> {
+            userService.deposit(9999, 100)
+        }
+    }
+
+    @Test
+    @DisplayName("출금_잔고부족_예외")
+    fun 출금_잔고부족_예외() {
+        val user = userRepository.save(getUserEntity())
+        val ex = assertThrows<NotEnoughBalanceException> {
+            userService.withdraw(user.id!!, 2000)
+        }
+        assertTrue(ex.message!!.contains("balance=1000"))
+    }
+
+    @Test
+    @DisplayName("출금_금액0이하_예외")
+    fun 출금_금액0이하_예외() {
+        val user = userRepository.save(getUserEntity())
+        assertThrows<InvalidAmountException> {
+            userService.withdraw(user.id!!, 0)
+        }
+    }
+
+    private fun getUserCreateDto() = UserCreateDto("rgunny", "rgunny@test.com")
+
+    private fun getUserEntity() = UserEntity(email = "rgunny@test.com", name = "rgunny", balance = 1000)
 }
