@@ -13,8 +13,8 @@ class UserController(
 ) {
 
     @PostMapping
-    fun createUser(@Valid @RequestBody dto: UserCreateDto): ResponseEntity<Any> {
-        val savedEntity = userService.createUser(dto.toDomain())
+    fun createUser(@Valid @RequestBody userCreateDto: UserCreateDto): ResponseEntity<Any> {
+        val savedEntity = userService.createUser(userCreateDto)
         return ResponseEntity.ok(savedEntity)
     }
 

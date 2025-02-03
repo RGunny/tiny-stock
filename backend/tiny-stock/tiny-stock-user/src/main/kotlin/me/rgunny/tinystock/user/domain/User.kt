@@ -2,6 +2,7 @@ package me.rgunny.tinystock.user.domain
 
 import me.rgunny.tinystock.common.exception.dto.InvalidAmountException
 import me.rgunny.tinystock.common.exception.dto.NotEnoughBalanceException
+import me.rgunny.tinystock.user.dto.UserCreateDto
 
 class User(
     val name: String,
@@ -49,23 +50,12 @@ class User(
 
     companion object {
 
-        fun fromEntity(entity: UserEntity): User {
+        fun from(dto: UserCreateDto): User {
             return User(
-                id = entity.id,
-                name = entity.username,
-                email = entity.email,
-                status = entity.status,
-                balance = entity.balance
-            )
-        }
-
-        fun toEntity(user: User): UserEntity {
-            return UserEntity(
-                id = user.id,
-                username = user.name,
-                email = user.email,
-                status = user.status,
-                balance = user.balance
+                name = dto.name,
+                email = dto.email,
+                // balance = 0  기본값
+                // status = INACTIVE 기본값
             )
         }
     }
