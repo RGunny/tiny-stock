@@ -26,7 +26,7 @@ class UserServiceTest @Autowired constructor(
         val user = User("rgunny", "rgunny@test.com")
         val createdUser = userService.createUser(user)
 
-        assertEquals("rgunny", createdUser.username)
+        assertEquals("rgunny", createdUser.name)
         assertEquals("rgunny@test.com", createdUser.email)
         assertEquals(UserStatus.INACTIVE, createdUser.status)
     }
@@ -61,7 +61,7 @@ class UserServiceTest @Autowired constructor(
 
     @Test
     fun `activateUser - DB 반영 및 도메인 로직 검증`() {
-        val created = userService.createUser(User(username = "activateUser", email = "rgunny@test.com"))
+        val created = userService.createUser(User(name = "activateUser", email = "rgunny@test.com"))
 
         assertEquals(UserStatus.INACTIVE, created.status)
         assertNotNull(created.id)
