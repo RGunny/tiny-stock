@@ -17,7 +17,10 @@ class UserEntity(
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    var status: UserStatus = UserStatus.INACTIVE
+    var status: UserStatus = UserStatus.INACTIVE,
+
+    @Column(nullable = false)
+    var balance: Long = 0
 ) {
     constructor() : this(null, "", "", UserStatus.INACTIVE)
 }

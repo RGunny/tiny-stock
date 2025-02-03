@@ -15,7 +15,7 @@ data class UserCreateDto(
 
     fun toDomain(): User {
         return User(
-            username = this.username,
+            name = this.username,
             email = this.email
         )
     }

@@ -1,7 +1,7 @@
 package me.rgunny.tinystock.user.service
 
+import me.rgunny.tinystock.common.exception.dto.ResourceNotFoundException
 import me.rgunny.tinystock.user.domain.User
-import me.rgunny.tinystock.user.domain.UserEntity
 import me.rgunny.tinystock.user.repository.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -16,47 +16,62 @@ class UserService(
         val existing = userRepository.findByEmail(user.email)
         check(existing == null) { "이미 사용 중인 이메일: ${user.email}" }
 
-        val entity = User.toEntity(user)
-        val savedEntity = userRepository.save(entity)
+        val userEntity = User.toEntity(user)
+        val savedUserEntity = userRepository.save(userEntity)
 
-        return User.fromEntity(savedEntity)
+        return User.fromEntity(savedUserEntity)
     }
 
     fun getUserById(id: Long): User? {
-        val entity = userRepository.findById(id).orElse(null) ?: return null
-        return User.fromEntity(entity)
+        val userEntity = userRepository.findById(id).orElse(null) ?: return null
+        return User.fromEntity(userEntity)
     }
 
     fun activateUser(id: Long): User? {
-        val entity = userRepository.findById(id).orElse(null) ?: return null
+        val userEntity = userRepository.findById(id).orElse(null) ?: return null
 
-        val domain = User.fromEntity(entity)
-        domain.activate()
+        val user = User.fromEntity(userEntity)
+        user.activate()
 
-        entity.apply {
-            username = domain.username
-            email = domain.email
-            status = domain.status
+        userEntity.apply {
+            username = user.name
+            email = user.email
+            status = user.status
         }
-        userRepository.save(entity)
+        userRepository.save(userEntity)
 
-        return domain
+        return user
     }
 
     fun changeEmail(id: Long, newEmail: String): User? {
-        val entity = userRepository.findById(id).orElse(null) ?: return null
-        val domain = User.fromEntity(entity)
+        val userEntity = userRepository.findById(id).orElse(null) ?: return null
+        val user = User.fromEntity(userEntity)
 
-        domain.changeEmail(newEmail)
+        user.changeEmail(newEmail)
 
-        entity.apply {
-            username = domain.username
-            email = domain.email
-            status = domain.status
+        userEntity.apply {
+            username = user.name
+            email = user.email
+            status = user.status
         }
 
-        userRepository.save(entity)
-        return domain
+        userRepository.save(userEntity)
+        return user
     }
 
+    fun deposit(userId: Long, amount: Long): User {
+        val userEntity = userRepository.findById(userId).orElseThrow { ResourceNotFoundException("User", userId) }
+        val user = User.fromEntity(userEntity)
+
+        user.deposit(amount)
+        return user
+    }
+
+    fun withdraw(userId: Long, amount: Long): User {
+        val userEntity = userRepository.findById(userId).orElseThrow { ResourceNotFoundException("User", userId) }
+        val user = User.fromEntity(userEntity)
+
+        user.withdraw(amount)
+        return user
+    }
 }

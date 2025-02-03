@@ -1,13 +1,17 @@
 package me.rgunny.tinystock.user.domain
 
+import me.rgunny.tinystock.common.exception.dto.InvalidAmountException
+import me.rgunny.tinystock.common.exception.dto.NotEnoughBalanceException
+
 class User(
-    val username: String,
+    val name: String,
     var email: String,
     var status: UserStatus = UserStatus.INACTIVE,
+    var balance: Long = 0,
     val id: Long? = null
 ) {
     init {
-        require(username.isNotBlank()) { "Username must not be blank" }
+        require(name.isNotBlank()) { "Username must not be blank" }
         require(email.isNotBlank()) { "Email must not be blank" }
     }
 
@@ -26,23 +30,42 @@ class User(
         this.email = newEmail
     }
 
+    fun deposit(amount: Long) {
+        if (amount <= 0) {
+            throw InvalidAmountException(amount)
+        }
+        balance += amount
+    }
+
+    fun withdraw(amount: Long) {
+        if (amount <= 0) {
+            throw InvalidAmountException(amount)
+        }
+        if (balance < amount) {
+            throw NotEnoughBalanceException(this.id ?: -1, balance, amount)
+        }
+        balance -= amount
+    }
+
     companion object {
 
         fun fromEntity(entity: UserEntity): User {
             return User(
                 id = entity.id,
-                username = entity.username,
+                name = entity.username,
                 email = entity.email,
-                status = entity.status
+                status = entity.status,
+                balance = entity.balance
             )
         }
 
         fun toEntity(user: User): UserEntity {
             return UserEntity(
                 id = user.id,
-                username = user.username,
+                username = user.name,
                 email = user.email,
-                status = user.status
+                status = user.status,
+                balance = user.balance
             )
         }
     }
